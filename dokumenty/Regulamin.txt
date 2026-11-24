@@ -1,0 +1,19 @@
+1. Regulamin określa zasady korzystania z usług firmy Kwantowy Borsuk, która buduje i utrzymuje agentów AI dla małych firm z Polski. Regulamin obowiązuje od 1 stycznia 2026 roku.
+
+2. Umowę zawiera się na czas nieokreślony po akceptacji regulaminu i wyborze pakietu: Start, Zespół albo Firma. Klientem może być wyłącznie firma lub osoba prowadząca działalność gospodarczą.
+
+3. Opłata za pakiet jest pobierana z góry za każdy miesiąc rozliczeniowy. Faktura jest wystawiana pierwszego dnia miesiąca, a termin płatności wynosi 14 dni. Przy opóźnieniu powyżej 30 dni możemy wstrzymać działanie agenta do czasu zapłaty.
+
+4. Klient może wypowiedzieć umowę z miesięcznym okresem wypowiedzenia, ze skutkiem na koniec miesiąca rozliczeniowego. Wypowiedzenie wysyła się e-mailem lub w panelu klienta. Opłaty za rozpoczęty miesiąc nie są zwracane.
+
+5. Bezpłatny okres próbny trwa 14 dni i dotyczy tylko pakietu Start. Po jego zakończeniu agent przestaje działać, chyba że klient wybierze płatny pakiet. Okres próbny przysługuje jednej firmie tylko raz.
+
+6. Przekroczenie miesięcznego limitu rozmów nie wyłącza agenta. Każde rozpoczęte 100 rozmów ponad limit kosztuje 49 zł netto i jest doliczane do kolejnej faktury.
+
+7. Gwarantujemy dostępność agenta na poziomie 99,5% w skali miesiąca. Za każdy pełny punkt procentowy poniżej tego poziomu klient otrzymuje 5% rabatu na kolejną fakturę.
+
+8. Klient odpowiada za treść dokumentów, które dodaje do bazy wiedzy agenta. Nie wolno dodawać danych osobowych bez podstawy prawnej ani treści niezgodnych z prawem.
+
+9. Reklamacje można zgłaszać e-mailem w ciągu 30 dni od wystąpienia problemu. Odpowiadamy na reklamację w ciągu 14 dni od jej otrzymania.
+
+10. Kwantowy Borsuk może zmienić regulamin, informując klientów e-mailem co najmniej 30 dni przed wejściem zmian w życie. Klient, który nie akceptuje zmian, może wypowiedzieć umowę bez okresu wypowiedzenia.
