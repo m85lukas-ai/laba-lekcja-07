@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { loadLastConversation, type LoadedConversation } from "@/lib/conversations";
 import { redirect } from "next/navigation";
-import { createAuthClient, getCurrentUser } from "@/lib/auth";
+import { createAuthClient, displayIdentity, getCurrentUser } from "@/lib/auth";
 import { BOT_INTRO, BOT_NAME, IMAGE_SUGGESTIONS } from "@/lib/persona";
 import { DATABASE_ERROR, DATABASE_MISSING, isDatabaseConfigured } from "@/lib/supabase";
 import Chat from "./components/Chat";
@@ -39,6 +39,8 @@ async function Gate() {
       initialMessages={last.messages}
       databaseNotice={databaseNotice}
       userEmail={user.email ?? ""}
+      userName={displayIdentity(user).name}
+      userAvatar={displayIdentity(user).avatarUrl}
     />
   );
 }

@@ -217,6 +217,8 @@ export default function Chat({
   initialMessages,
   databaseNotice,
   userEmail,
+  userName,
+  userAvatar,
 }: {
   botName: string;
   intro: string;
@@ -225,6 +227,8 @@ export default function Chat({
   initialMessages: AgentMessage[]; // jej wiadomości — dzięki nim rozmowa przetrwa F5
   databaseNotice: string; // komunikat, gdy baza nie jest podłączona albo nie odpowiada
   userEmail: string; // e-mail zalogowanej osoby — pokazujemy go w nagłówku
+  userName: string; // imię z konta Google albo e-mail
+  userAvatar: string | null; // zdjęcie z konta Google (https) albo null
 }) {
   const router = useRouter();
   // Numer rozmowy w bazie. null = nowa rozmowa: serwer utworzy ją przy pierwszej wiadomości.
@@ -350,7 +354,15 @@ export default function Chat({
       <header>
         <div className="who">
           <h1>{botName}</h1>
-          <span className="small">{userEmail}</span>
+          <span className="user">
+            {userAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element -- zwykły img: zdjęcie z serwera Google
+              <img className="avatar" src={userAvatar} alt="" width={24} height={24} referrerPolicy="no-referrer" />
+            ) : (
+              <span className="avatar letter" aria-hidden="true">{userName.charAt(0).toUpperCase()}</span>
+            )}
+            <span className="small" title={userEmail}>{userName}</span>
+          </span>
         </div>
         <nav className="nav">
           <Link href="/upload">Baza wiedzy</Link>

@@ -49,3 +49,14 @@ export async function getCurrentUser(): Promise<User | null> {
   if (error || !data.user) return null;
   return data.user;
 }
+
+// Imię i zdjęcie do nagłówka. Przy logowaniu przez Google Supabase zapisuje je w user_metadata
+// (full_name / name oraz avatar_url / picture). Przy koncie e-mail ich nie ma — wtedy pokazujemy e-mail.
+export function displayIdentity(user: User): { name: string; avatarUrl: string | null } {
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+  const name = text(meta.full_name) ?? text(meta.name) ?? user.email ?? "Użytkownik";
+  const avatar = text(meta.avatar_url) ?? text(meta.picture);
+  // Obrazek przyjmujemy tylko z adresu https.
+  return { name, avatarUrl: avatar && avatar.startsWith("https://") ? avatar : null };
+}

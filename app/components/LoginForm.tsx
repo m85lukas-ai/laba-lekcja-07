@@ -33,12 +33,28 @@ function polishError(error: AuthError): string {
   }
 }
 
-export default function LoginForm({ botName }: { botName: string }) {
+export default function LoginForm({ botName, initialError = "" }: { botName: string; initialError?: string }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError);
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  // Logowanie przez Google: przeglądarka idzie do Google, potem przez Supabase wraca na /auth/callback.
+  // Adres powrotu budujemy z adresu, pod którym aplikacja właśnie działa (localhost albo Vercel).
+  async function loginWithGoogle() {
+    setError("");
+    setGoogleBusy(true);
+    const { error: oauthError } = await createBrowserAuthClient().auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/` },
+    });
+    if (oauthError) {
+      setGoogleBusy(false);
+      setError("Nie udało się rozpocząć logowania przez Google. Spróbuj ponownie.");
+    }
+  }
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -122,6 +138,10 @@ export default function LoginForm({ botName }: { botName: string }) {
       />
       <button type="submit" disabled={busy || !email || !password}>
         {busy ? "Chwileczkę…" : tab === "login" ? "Zaloguj się" : "Załóż konto"}
+      </button>
+      <p className="muted or">albo</p>
+      <button type="button" className="ghost" onClick={loginWithGoogle} disabled={googleBusy}>
+        {googleBusy ? "Chwileczkę…" : "Zaloguj przez Google"}
       </button>
       {error && <p className="error">{error}</p>}
       {info && <p className="muted">{info}</p>}
