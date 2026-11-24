@@ -403,3 +403,32 @@ textarea {
   color: #1e7e34;
   margin: 8px 0 0;
 }
+
+/* Lekcja 7 — logowanie: zakładki i e-mail w nagłówku */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px;
+}
+
+.tab.active {
+  color: inherit;
+  border-bottom-color: currentColor;
+  font-weight: 600;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

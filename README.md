@@ -58,7 +58,7 @@ Agent nie ma jeszcze bazy wiedzy z Twoich dokumentów — dodajesz ją na lekcji
    npm run dev
    ```
 
-7. Otwórz http://localhost:3000 i wpisz swoje hasło.
+7. Otwórz http://localhost:3000 i załóż konto albo zaloguj się e-mailem i hasłem.
 
 Zmienną `OPENROUTER_EMBEDDING_MODEL` z końca pliku `.env.example` uzupełnisz na lekcji 6 — aplikacja jeszcze z niej nie korzysta.
 
@@ -121,7 +121,7 @@ Dopasuj nazwę, powitanie, zasady, dwa przykłady odpowiedzi i trzy podpowiedzi 
 | `lib/sources.ts` | funkcje pobierające dane: pogoda, waluty, święta, Wikipedia, kalkulator, czas |
 | `lib/trip.ts` | pięć kart asystenta podróży — składane z funkcji z `lib/sources.ts` |
 | `lib/model.ts` | połączenie z modelem przez OpenRouter (rozmowa, obrazy, wyszukiwanie) |
-| `lib/session.ts` | hasło i sesja |
+| `lib/auth.ts`, `lib/auth-browser.ts`, `proxy.ts` | konta użytkowników (Supabase Auth) i sesja |
 | `app/api/agent/route.ts` | agent: tryb `chat` (streaming, narzędzia, limit kroków, profil w instrukcji, zapis rozmowy po zakończeniu odpowiedzi) oraz tryb `analyze` (analiza JSON) |
 | `app/page.tsx` | strona główna: sprawdza sesję i wczytuje ostatnią rozmowę z bazy |
 | `app/api/image/route.ts` | generowanie obrazu z przycisku „Wygeneruj obraz” |

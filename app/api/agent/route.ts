@@ -12,7 +12,7 @@ import { createConversation, messageText, saveExchange } from "@/lib/conversatio
 import { chatModel, isModelConfigured } from "@/lib/model";
 import { ANALYSIS_INSTRUCTIONS, INSTRUCTIONS, analysisSchema } from "@/lib/persona";
 import { loadProfile, profileInstructions, type Profile } from "@/lib/profile";
-import { hasSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { isDatabaseConfigured } from "@/lib/supabase";
 import { MAX_STEPS, agentTools, type AgentMetadata } from "@/lib/tools";
 
@@ -25,8 +25,9 @@ const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp"];
 // - "analyze": wynik w ustalonym kształcie (JSON).
 export async function POST(req: Request) {
   // 1. Najpierw sprawdzamy sesję. Bez niej nie dotykamy ani bazy, ani modelu.
-  if (!(await hasSession())) {
-    return Response.json({ error: "Brak dostępu. Zaloguj się hasłem." }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ error: "Brak dostępu. Zaloguj się." }, { status: 401 });
   }
 
   if (!isModelConfigured()) {

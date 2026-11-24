@@ -3,10 +3,10 @@ import Link from "next/link";
 import { generateText } from "ai";
 import { chatModel, isModelConfigured } from "@/lib/model";
 import { BOT_NAME } from "@/lib/persona";
-import { hasSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { dzisiaj } from "@/lib/sources";
 import { zbierzKarty, type Karta } from "@/lib/trip";
-import Login from "../components/Login";
 
 // Asystent podróży: pięć kart z pięciu źródeł i krótkie podsumowanie od agenta.
 // Strona działa na serwerze. Formularz wysyła miasto i datę w adresie
@@ -27,9 +27,9 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
 
 // Najpierw sprawdzamy sesję. Bez niej nie pobieramy żadnych danych — pokazujemy ekran hasła.
 async function Gate({ searchParams }: { searchParams: Params }) {
-  if (!(await hasSession())) {
-    return <Login botName={BOT_NAME} />;
-  }
+  // Kto jest zalogowany, ustala serwer (zweryfikowana sesja Supabase). Bez konta — strona logowania.
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   const params = await searchParams;
   const miasto = typeof params.miasto === "string" ? params.miasto.trim() : "";

@@ -1,19 +1,19 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { loadLastConversation, type LoadedConversation } from "@/lib/conversations";
-import { hasSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { BOT_INTRO, BOT_NAME, IMAGE_SUGGESTIONS } from "@/lib/persona";
 import { DATABASE_ERROR, DATABASE_MISSING, isDatabaseConfigured } from "@/lib/supabase";
 import Chat from "./components/Chat";
-import Login from "./components/Login";
 
 // Serwer sprawdza ciasteczko sesji i decyduje, co pokazać: ekran hasła czy czat z ostatnią rozmową.
 async function Gate() {
   await connection(); // ta część strony powstaje przy każdym wejściu, nie podczas budowania
   // Najpierw sesja. Bez niej nie czytamy niczego z bazy.
-  if (!(await hasSession())) {
-    return <Login botName={BOT_NAME} />;
-  }
+  // Kto jest zalogowany, ustala serwer (zweryfikowana sesja Supabase). Bez konta — strona logowania.
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   // Wczytujemy ostatnią rozmowę z bazy — dzięki temu jest na ekranie także po odświeżeniu strony.
   // Gdy baza nie jest podłączona albo nie odpowiada, czat działa dalej i pokazuje komunikat.
@@ -38,6 +38,7 @@ async function Gate() {
       initialConversationId={last.conversationId}
       initialMessages={last.messages}
       databaseNotice={databaseNotice}
+      userEmail={user.email ?? ""}
     />
   );
 }

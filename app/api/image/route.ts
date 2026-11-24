@@ -1,13 +1,14 @@
 import { isModelConfigured } from "@/lib/model";
-import { hasSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { MAX_IMAGE_PROMPT, createImage } from "@/lib/tools";
 
 export const maxDuration = 60;
 
 // Przycisk „Wygeneruj obraz”: opis obrazu -> gotowy obraz i nazwa modelu.
 export async function POST(req: Request) {
-  if (!(await hasSession())) {
-    return Response.json({ error: "Brak dostępu. Zaloguj się hasłem." }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ error: "Brak dostępu. Zaloguj się." }, { status: 401 });
   }
 
   const body = await req.json().catch(() => null);

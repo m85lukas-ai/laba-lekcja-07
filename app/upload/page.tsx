@@ -2,17 +2,17 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { BOT_NAME } from "@/lib/persona";
-import { hasSession } from "@/lib/session";
-import Login from "../components/Login";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import UploadForm from "../components/UploadForm";
 
 // Baza wiedzy: tu wklejasz dokumenty (cennik, FAQ, regulamin), z których odpowiada agent.
 async function Gate() {
   await connection();
   // Najpierw sesja. Bez niej — ekran hasła.
-  if (!(await hasSession())) {
-    return <Login botName={BOT_NAME} />;
-  }
+  // Kto jest zalogowany, ustala serwer (zweryfikowana sesja Supabase). Bez konta — strona logowania.
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   return (
     <div className="card">

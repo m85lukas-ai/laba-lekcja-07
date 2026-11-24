@@ -1,4 +1,4 @@
-import { hasSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { DATABASE_MISSING, isDatabaseConfigured } from "@/lib/supabase";
 import { isModelConfigured } from "@/lib/model";
 import { KnowledgeError, MAX_CONTENT, MAX_TITLE, saveDocument } from "@/lib/knowledge";
@@ -6,8 +6,9 @@ import { KnowledgeError, MAX_CONTENT, MAX_TITLE, saveDocument } from "@/lib/know
 // Formularz /upload: tytuł + treść -> dokument w tabeli documents i fragmenty w tabeli chunks.
 export async function POST(req: Request) {
   // Najpierw sesja. Bez niej nie dotykamy bazy.
-  if (!(await hasSession())) {
-    return Response.json({ error: "Brak dostępu. Zaloguj się hasłem." }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ error: "Brak dostępu. Zaloguj się." }, { status: 401 });
   }
 
   const body = await req.json().catch(() => null);

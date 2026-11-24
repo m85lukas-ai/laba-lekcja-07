@@ -237,8 +237,8 @@ const diagnostyka = tool({
     limitKrokow: MAX_STEPS,
     zmienneSrodowiskowe: {
       OPENROUTER_API_KEY: ustawiona("OPENROUTER_API_KEY"),
-      CHAT_PASSWORD: ustawiona("CHAT_PASSWORD"),
-      SESSION_SECRET: ustawiona("SESSION_SECRET"),
+      NEXT_PUBLIC_SUPABASE_URL: ustawiona("NEXT_PUBLIC_SUPABASE_URL"),
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ustawiona("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
       SUPABASE_URL: ustawiona("SUPABASE_URL"),
       SUPABASE_SECRET_KEY: ustawiona("SUPABASE_SECRET_KEY"),
       OPENROUTER_EMBEDDING_MODEL: ustawiona("OPENROUTER_EMBEDDING_MODEL"),

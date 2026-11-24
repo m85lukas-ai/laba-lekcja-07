@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createBrowserAuthClient } from "@/lib/auth-browser";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, getToolName, isToolUIPart, type FileUIPart, type UIMessage } from "ai";
 import type { AgentMetadata, ImageResult } from "@/lib/tools";
@@ -215,6 +216,7 @@ export default function Chat({
   initialConversationId,
   initialMessages,
   databaseNotice,
+  userEmail,
 }: {
   botName: string;
   intro: string;
@@ -222,6 +224,7 @@ export default function Chat({
   initialConversationId: number | null; // numer ostatniej rozmowy z bazy (null = brak)
   initialMessages: AgentMessage[]; // jej wiadomości — dzięki nim rozmowa przetrwa F5
   databaseNotice: string; // komunikat, gdy baza nie jest podłączona albo nie odpowiada
+  userEmail: string; // e-mail zalogowanej osoby — pokazujemy go w nagłówku
 }) {
   const router = useRouter();
   // Numer rozmowy w bazie. null = nowa rozmowa: serwer utworzy ją przy pierwszej wiadomości.
@@ -323,7 +326,10 @@ export default function Chat({
   }
 
   async function logout() {
-    await fetch("/api/logout", { method: "POST" });
+    // Kończymy sesję w Supabase i czyścimy ekran, zanim przejdziemy na /login.
+    await createBrowserAuthClient().auth.signOut();
+    setMessages([]);
+    router.replace("/login");
     router.refresh();
   }
 
@@ -342,7 +348,10 @@ export default function Chat({
   return (
     <div className="card chat">
       <header>
-        <h1>{botName}</h1>
+        <div className="who">
+          <h1>{botName}</h1>
+          <span className="small">{userEmail}</span>
+        </div>
         <nav className="nav">
           <Link href="/upload">Baza wiedzy</Link>
           <Link href="/dashboard">Asystent podróży</Link>
@@ -350,7 +359,7 @@ export default function Chat({
             Nowa rozmowa
           </button>
           <button type="button" className="ghost" onClick={logout}>
-            Wyjdź
+            Wyloguj
           </button>
         </nav>
       </header>
