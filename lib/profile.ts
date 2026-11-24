@@ -1,9 +1,10 @@
-import { supabase } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ============================================================
 // PROFIL UŻYTKOWNIKA — to, co agent o Tobie pamięta.
 // Tabela user_profiles: name (imię) i preferences (pozostałe fakty jako pary nazwa–wartość).
-// Aplikacja ma jedno wspólne hasło, czyli jednego właściciela, dlatego profil to JEDEN wiersz.
+// Każda zalogowana osoba ma JEDEN swój wiersz (unikalny user_id). Funkcje dostają klienta zalogowanej
+// osoby, więc RLS pokazuje i pozwala zmienić tylko jej profil. user_id wpisuje sama baza.
 // Zapis go aktualizuje — nie tworzy kolejnych wierszy.
 // ============================================================
 
@@ -15,8 +16,8 @@ export type Profile = {
 };
 
 // Wiersz profilu (najstarszy, gdyby ktoś ręcznie dodał ich więcej) albo null, gdy tabela jest pusta.
-async function loadProfileRow(): Promise<(Profile & { id: number }) | null> {
-  const { data, error } = await supabase()
+async function loadProfileRow(db: SupabaseClient): Promise<(Profile & { id: number }) | null> {
+  const { data, error } = await db
     .from("user_profiles")
     .select("id, name, preferences")
     .order("id", { ascending: true })
@@ -31,23 +32,23 @@ async function loadProfileRow(): Promise<(Profile & { id: number }) | null> {
   return { id: data.id, name: data.name ?? null, preferences };
 }
 
-export async function loadProfile(): Promise<Profile | null> {
-  const row = await loadProfileRow();
+export async function loadProfile(db: SupabaseClient): Promise<Profile | null> {
+  const row = await loadProfileRow(db);
   return row ? { name: row.name, preferences: row.preferences } : null;
 }
 
 // Dopisuje fakty do profilu. Nowy fakt nie kasuje starych: imię zmienia się tylko wtedy,
 // gdy zostało podane, a preferencje są łączone z tymi, które już były.
-export async function saveProfile(name: string | undefined, newPreferences: Record<string, string>): Promise<Profile> {
-  const current = await loadProfileRow();
+export async function saveProfile(db: SupabaseClient, name: string | undefined, newPreferences: Record<string, string>): Promise<Profile> {
+  const current = await loadProfileRow(db);
   const profile: Profile = {
     name: name ?? current?.name ?? null,
     preferences: { ...current?.preferences, ...newPreferences },
   };
 
   const { error } = current
-    ? await supabase().from("user_profiles").update(profile).eq("id", current.id)
-    : await supabase().from("user_profiles").insert(profile);
+    ? await db.from("user_profiles").update(profile).eq("id", current.id)
+    : await db.from("user_profiles").insert(profile);
   if (error) throw new Error(error.message);
   return profile;
 }

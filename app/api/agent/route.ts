@@ -8,11 +8,11 @@ import {
   toUIMessageStream,
   type UIMessage,
 } from "ai";
-import { createConversation, messageText, saveExchange } from "@/lib/conversations";
+import { createConversation, isOwnConversation, messageText, saveExchange } from "@/lib/conversations";
 import { chatModel, isModelConfigured } from "@/lib/model";
 import { ANALYSIS_INSTRUCTIONS, INSTRUCTIONS, analysisSchema } from "@/lib/persona";
 import { loadProfile, profileInstructions, type Profile } from "@/lib/profile";
-import { getCurrentUser } from "@/lib/auth";
+import { createAuthClient, getCurrentUser } from "@/lib/auth";
 import { isDatabaseConfigured } from "@/lib/supabase";
 import { MAX_STEPS, agentTools, type AgentMetadata } from "@/lib/tools";
 
@@ -61,19 +61,26 @@ async function chat(messages: UIMessage[] | undefined, conversationIdFromClient:
   const userText = lastMessage.role === "user" ? messageText(lastMessage) : "";
   let profile: Profile | null = null;
   let conversationId: number | undefined;
+  // Klient Supabase „jako zalogowana osoba” — rozmowy i profil pilnuje RLS w bazie.
+  const db = await createAuthClient();
 
   if (isDatabaseConfigured()) {
     try {
-      profile = await loadProfile();
+      profile = await loadProfile(db);
     } catch (error) {
       console.error("Nie udało się wczytać profilu:", error);
     }
     try {
       // Przeglądarka przysyła numer rozmowy. Gdy go nie ma, pierwsza wiadomość tworzy nową rozmowę.
-      if (typeof conversationIdFromClient === "number" && Number.isInteger(conversationIdFromClient)) {
+      // Numer od przeglądarki przyjmujemy tylko, gdy to rozmowa tej osoby — inaczej zaczynamy nową.
+      if (
+        typeof conversationIdFromClient === "number" &&
+        Number.isInteger(conversationIdFromClient) &&
+        (await isOwnConversation(db, conversationIdFromClient))
+      ) {
         conversationId = conversationIdFromClient;
       } else if (userText) {
-        conversationId = await createConversation(userText);
+        conversationId = await createConversation(db, userText);
       }
     } catch (error) {
       console.error("Nie udało się utworzyć rozmowy:", error);
@@ -88,6 +95,7 @@ async function chat(messages: UIMessage[] | undefined, conversationIdFromClient:
     instructions: `${INSTRUCTIONS}\n\n${profileInstructions(profile)}`,
     messages: await convertToModelMessages(messages, { tools: agentTools }),
     tools: agentTools,
+    toolsContext: { zapiszProfil: { db } },
     stopWhen: isStepCount(MAX_STEPS),
   });
 
@@ -130,7 +138,7 @@ async function chat(messages: UIMessage[] | undefined, conversationIdFromClient:
         const assistantText = messageText(responseMessage);
         if (!conversationId || !userText || !assistantText) return;
         try {
-          await saveExchange(conversationId, userText, assistantText);
+          await saveExchange(db, conversationId, userText, assistantText);
         } catch (error) {
           console.error("Nie udało się zapisać wiadomości:", error);
         }

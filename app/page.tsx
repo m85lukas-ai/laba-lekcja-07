@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { loadLastConversation, type LoadedConversation } from "@/lib/conversations";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { createAuthClient, getCurrentUser } from "@/lib/auth";
 import { BOT_INTRO, BOT_NAME, IMAGE_SUGGESTIONS } from "@/lib/persona";
 import { DATABASE_ERROR, DATABASE_MISSING, isDatabaseConfigured } from "@/lib/supabase";
 import Chat from "./components/Chat";
@@ -23,7 +23,7 @@ async function Gate() {
     databaseNotice = DATABASE_MISSING;
   } else {
     try {
-      last = await loadLastConversation();
+      last = await loadLastConversation(await createAuthClient());
     } catch (error) {
       console.error("Nie udało się wczytać rozmowy:", error);
       databaseNotice = DATABASE_ERROR;

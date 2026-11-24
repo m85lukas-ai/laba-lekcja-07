@@ -1,4 +1,5 @@
 import { generateImage, tool } from "ai";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { MODEL_ID, imageModel, webSearchTool } from "@/lib/model";
 import { saveProfile } from "@/lib/profile";
@@ -194,7 +195,11 @@ const zapiszProfil = tool({
       .optional()
       .describe("Pozostałe fakty o użytkowniku jako pary nazwa–wartość"),
   }),
-  execute: async ({ imie, preferencje }) => {
+  // Klient Supabase zalogowanej osoby — podaje go serwer (app/api/agent), nigdy model.
+  contextSchema: z.object({
+    db: z.custom<SupabaseClient>((value) => typeof value === "object" && value !== null),
+  }),
+  execute: async ({ imie, preferencje }, { context }) => {
     if (!isDatabaseConfigured()) return { blad: DATABASE_MISSING, pobrano: teraz() };
 
     const nowe: Record<string, string> = {};
@@ -205,7 +210,7 @@ const zapiszProfil = tool({
     }
 
     try {
-      const profil = await saveProfile(noweImie, nowe);
+      const profil = await saveProfile(context.db, noweImie, nowe);
       const zapisane = Object.entries(nowe).map(([nazwa, wartosc]) => `${nazwa}: ${wartosc}`);
       if (noweImie) zapisane.unshift(`imię: ${noweImie}`);
       return { profil, opis: `Zapisano w profilu — ${zapisane.join(", ")}`, pobrano: teraz() };

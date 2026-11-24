@@ -1,11 +1,13 @@
 import type { UIMessage } from "ai";
-import { supabase } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AgentMetadata } from "@/lib/tools";
 
 // ============================================================
 // ZAPIS I ODCZYT ROZMÓW.
 // Tabela conversations: jedna rozmowa = jeden wiersz (id, created_at, title).
 // Tabela messages: jedna wiadomość = jeden wiersz (conversation_id, role, content).
+// Każda funkcja dostaje klienta Supabase ZALOGOWANEJ osoby (lib/auth.ts → createAuthClient).
+// Dzięki temu bazy pilnuje RLS: osoba widzi i zapisuje tylko swoje wiersze, a user_id wpisuje sama baza.
 // Każda funkcja zgłasza błąd (throw), gdy baza odmówi — obsługuje go ten, kto ją wywołał.
 // ============================================================
 
@@ -24,17 +26,17 @@ export function messageText(message: UIMessage): string {
 }
 
 // Nowa rozmowa. Tytuł to początek pierwszej wiadomości. Zwraca numer (id) rozmowy.
-export async function createConversation(firstMessage: string): Promise<number> {
+export async function createConversation(db: SupabaseClient, firstMessage: string): Promise<number> {
   const title = firstMessage.slice(0, TITLE_LENGTH) || "Nowa rozmowa";
-  const { data, error } = await supabase().from("conversations").insert({ title }).select("id").single();
+  const { data, error } = await db.from("conversations").insert({ title }).select("id").single();
   if (error) throw new Error(error.message);
   return data.id;
 }
 
 // Zapisuje jedną wymianę: wiadomość użytkownika i gotową odpowiedź agenta.
 // Oba wiersze idą w jednym zapytaniu, więc trafiają do bazy razem i w dobrej kolejności.
-export async function saveExchange(conversationId: number, userText: string, assistantText: string) {
-  const { error } = await supabase()
+export async function saveExchange(db: SupabaseClient, conversationId: number, userText: string, assistantText: string) {
+  const { error } = await db
     .from("messages")
     .insert([
       { conversation_id: conversationId, role: "user", content: userText },
@@ -43,14 +45,21 @@ export async function saveExchange(conversationId: number, userText: string, ass
   if (error) throw new Error(error.message);
 }
 
+// Czy rozmowa o tym numerze należy do zalogowanej osoby? Cudzej RLS po prostu nie pokaże.
+export async function isOwnConversation(db: SupabaseClient, conversationId: number): Promise<boolean> {
+  const { data, error } = await db.from("conversations").select("id").eq("id", conversationId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
 export type LoadedConversation = {
   conversationId: number | null; // null = nie ma jeszcze żadnej rozmowy
   messages: UIMessage<AgentMetadata>[];
 };
 
 // Ostatnia rozmowa (ta z najwyższym id) razem z wiadomościami, od najstarszej.
-export async function loadLastConversation(): Promise<LoadedConversation> {
-  const last = await supabase()
+export async function loadLastConversation(db: SupabaseClient): Promise<LoadedConversation> {
+  const last = await db
     .from("conversations")
     .select("id")
     .order("id", { ascending: false })
@@ -60,7 +69,7 @@ export async function loadLastConversation(): Promise<LoadedConversation> {
   if (!last.data) return { conversationId: null, messages: [] };
 
   const conversationId: number = last.data.id;
-  const rows = await supabase()
+  const rows = await db
     .from("messages")
     .select("id, role, content")
     .eq("conversation_id", conversationId)
